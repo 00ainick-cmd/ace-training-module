@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACE Training — Avionics CNS Testing with AVX-10K</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep:#070c14; --bg-primary:#0c1322; --bg-card:#111b2e; --bg-surface:#1a2744;
+  --text-primary:#e8edf5; --text-secondary:#8899b4; --text-muted:#556680;
+  --accent:#00b4ff; --accent-glow:rgba(0,180,255,0.3); --accent-subtle:rgba(0,180,255,0.08); --accent-border:rgba(0,180,255,0.25);
+  --success:#10b981; --success-bg:rgba(16,185,129,0.1); --success-border:rgba(16,185,129,0.3);
+  --warning:#f59e0b; --warning-bg:rgba(245,158,11,0.08); --warning-border:rgba(245,158,11,0.3);
+  --error:#ef4444; --error-bg:rgba(239,68,68,0.08); --error-border:rgba(239,68,68,0.3);
+  --safety-red:#ff3b3b; --safety-glow:rgba(255,59,59,0.25);
+  --purple:#a78bfa; --purple-bg:rgba(167,139,250,0.1);
+  --sidebar-w:280px; --header-h:56px;
+  --radius:8px; --radius-lg:12px; --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --font-body:'IBM Plex Sans',-apple-system,sans-serif;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg-deep);color:var(--text-primary);line-height:1.7;min-height:100vh;overflow-x:hidden}
+
+/* ─── HEADER ─── */
+.hdr{position:fixed;top:0;left:0;right:0;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--bg-primary);border-bottom:1px solid rgba(255,255,255,0.06);z-index:200}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hamburger{display:none;background:none;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;padding:4px 8px;border-radius:4px}
+.hamburger:hover{background:var(--bg-surface);color:var(--text-primary)}
+.logo-mark{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),#0088cc);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:16px;color:#fff}
+.logo-text{font-family:var(--font-display);font-size:14px;color:var(--text-secondary)}
+.logo-text span{color:var(--text-primary);font-weight:600}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.progress-pill{font-family:var(--font-mono);font-size:11px;color:var(--accent);background:var(--accent-subtle);border:1px solid var(--accent-border);padding:5px 14px;border-radius:20px;letter-spacing:0.5px}
+
+/* ─── SIDEBAR ─── */
+.sidebar{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--bg-primary);border-right:1px solid rgba(255,255,255,0.06);overflow-y:auto;z-index:150;transition:transform .3s ease}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--bg-surface);border-radius:4px}
+.sb-header{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.sb-title{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px}
+.sb-sub{font-size:11px;color:var(--text-muted)}
+.sb-progress{margin-top:10px;height:4px;background:var(--bg-surface);border-radius:2px;overflow:hidden}
+.sb-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--success));border-radius:2px;transition:width .5s ease}
+.sb-section{padding:10px 0 4px}
+.sb-section-label{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--text-muted);padding:8px 18px 4px;text-transform:uppercase}
+.sb-lesson{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--text-secondary);border-left:3px solid transparent}
+.sb-lesson:hover{background:rgba(255,255,255,0.03);color:var(--text-primary)}
+.sb-lesson.active{background:var(--accent-subtle);color:var(--accent);border-left-color:var(--accent);font-weight:500}
+.sb-lesson.completed .sb-icon{background:var(--success);color:#fff}
+.sb-icon{width:22px;height:22px;border-radius:50%;border:2px solid var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;transition:all .2s}
+.sb-lesson.active .sb-icon{border-color:var(--accent);color:var(--accent)}
+.sb-lesson.completed .sb-icon{border-color:var(--success)}
+
+/* ─── MAIN CONTENT ─── */
+.main{margin-left:var(--sidebar-w);margin-top:var(--header-h);min-height:calc(100vh - var(--header-h))}
+.lesson-container{max-width:780px;margin:0 auto;padding:40px 32px 80px}
+
+/* ─── BLOCK TYPES ─── */
+/* Hero */
+.block-hero{position:relative;margin:-40px -32px 40px;padding:80px 48px 60px;background:linear-gradient(135deg,var(--bg-card) 0%,var(--bg-surface) 100%);border-bottom:1px solid rgba(255,255,255,0.06);overflow:hidden}
+.block-hero::before{content:'';position:absolute;top:0;right:0;width:300px;height:300px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);opacity:0.15}
+.hero-section-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.hero-title{font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1.2;margin-bottom:12px;color:#fff}
+.hero-desc{font-size:16px;color:var(--text-secondary);max-width:560px;line-height:1.7}
+.hero-meta{margin-top:20px;display:flex;gap:20px;flex-wrap:wrap}
+.hero-meta-item{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.hero-meta-item .dot{width:6px;height:6px;border-radius:50%}
+
+/* Learning Objectives */
+.block-objectives{background:var(--accent-subtle);border:1px solid var(--accent-border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:32px}
+.obj-header{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.obj-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.obj-list li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text-primary);line-height:1.5}
+.obj-list li::before{content:'◎';color:var(--accent);font-size:12px;margin-top:3px;flex-shrink:0}
+
+/* Text Block */
+.block-text{margin-bottom:28px}
+.block-text h2{font-family:var(--font-display);font-size:22px;font-weight:600;margin-bottom:12px;color:#fff}
+.block-text h3{font-family:var(--font-display);font-size:17px;font-weight:600;margin-bottom:10px;color:var(--text-primary)}
+.block-text p{font-size:15px;color:var(--text-secondary);margin-bottom:14px;line-height:1.8}
+.block-text strong{color:var(--text-primary);font-weight:600}
+
+/* Text + Image */
+.block-text-image{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-bottom:32px}
+.block-text-image.reverse{direction:rtl}
+.block-text-image.reverse>*{direction:ltr}
+.ti-text h3{font-family:var(--font-display);font-size:17px;font-weight:600;margin-bottom:10px;color:var(--text-primary)}
+.ti-text p{font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:10px}
+.ti-image{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.ti-image img{width:100%;display:block}
+
+/* Callout */
+.block-callout{border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:28px;display:flex;gap:14px;align-items:flex-start}
+.block-callout.info{background:var(--accent-subtle);border:1px solid var(--accent-border)}
+.block-callout.warn{background:var(--warning-bg);border:1px solid var(--warning-border)}
+.block-callout.safety{background:var(--error-bg);border:1px solid var(--error-border)}
+.callout-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.callout-body{flex:1}
+.callout-title{font-weight:600;font-size:14px;margin-bottom:4px}
+.callout-body.info .callout-title{color:var(--accent)}
+.callout-body.warn .callout-title{color:var(--warning)}
+.callout-body.safety .callout-title{color:var(--safety-red)}
+.block-callout p{font-size:14px;color:var(--text-secondary);line-height:1.6}
+
+/* Numbered Process */
+.block-process{margin-bottom:32px}
+.process-title{font-family:var(--font-display);font-size:17px;font-weight:600;margin-bottom:16px;color:var(--text-primary)}
+.process-step{display:flex;gap:16px;margin-bottom:16px;align-items:flex-start}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:600;flex-shrink:0}
+.step-content{flex:1;padding-top:4px}
+.step-action{font-size:14px;color:var(--text-primary);font-weight:500;margin-bottom:2px}
+.step-detail{font-size:13px;color:var(--text-muted)}
+.step-verify{font-size:12px;color:var(--success);margin-top:4px;font-family:var(--font-mono)}
+
+/* Accordion */
+.block-accordion{margin-bottom:28px}
+.acc-item{border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);margin-bottom:6px;overflow:hidden}
+.acc-trigger{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--bg-card);transition:background .15s}
+.acc-trigger:hover{background:var(--bg-surface)}
+.acc-trigger-text{font-size:14px;font-weight:500;color:var(--text-primary)}
+.acc-arrow{color:var(--text-muted);transition:transform .2s;font-size:12px}
+.acc-item.open .acc-arrow{transform:rotate(180deg)}
+.acc-body{display:none;padding:14px 18px;background:var(--bg-card);border-top:1px solid rgba(255,255,255,0.04);font-size:14px;color:var(--text-secondary);line-height:1.7}
+.acc-item.open .acc-body{display:block}
+
+/* Knowledge Check */
+.block-kc{background:var(--bg-card);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:28px;margin-bottom:32px}
+.block-kc.safety-gate{border-color:var(--error-border);background:var(--error-bg)}
+.kc-header{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.block-kc.safety-gate .kc-header{color:var(--safety-red)}
+.kc-question{font-size:15px;color:var(--text-primary);margin-bottom:16px;line-height:1.5}
+.kc-option{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:all .15s;font-size:14px;color:var(--text-secondary)}
+.kc-option:hover{border-color:var(--accent-border);background:var(--accent-subtle);color:var(--text-primary)}
+.kc-option.selected{border-color:var(--accent);background:var(--accent-subtle);color:var(--accent)}
+.kc-option.correct{border-color:var(--success);background:var(--success-bg);color:var(--success)}
+.kc-option.wrong{border-color:var(--error);background:var(--error-bg);color:var(--error)}
+.kc-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--text-muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.kc-option.selected .kc-radio,.kc-option.correct .kc-radio{border-color:currentColor}
+.kc-option.selected .kc-radio::after,.kc-option.correct .kc-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:currentColor}
+.kc-feedback{margin-top:14px;padding:14px 16px;border-radius:var(--radius);font-size:13px;line-height:1.6;display:none}
+.kc-feedback.show{display:block}
+.kc-feedback.pass{background:var(--success-bg);border:1px solid var(--success-border);color:var(--success)}
+.kc-feedback.fail{background:var(--error-bg);border:1px solid var(--error-border);color:var(--error)}
+
+/* Transcript Quote */
+.block-quote{border-left:3px solid var(--accent);padding:16px 20px;margin-bottom:28px;background:var(--bg-card);border-radius:0 var(--radius) var(--radius) 0}
+.quote-text{font-size:15px;color:var(--text-secondary);font-style:italic;line-height:1.7;margin-bottom:6px}
+.quote-attr{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+
+/* Key Takeaways */
+.block-takeaways{background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:32px}
+.tk-header{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--success);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.tk-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.tk-list li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text-primary);line-height:1.5}
+.tk-list li::before{content:'✓';color:var(--success);font-weight:700;flex-shrink:0}
+
+/* Divider */
+.block-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);margin:36px 0}
+
+/* Continue Button */
+.block-continue{text-align:center;margin:40px 0 20px}
+.btn-continue{display:inline-flex;align-items:center;gap:8px;padding:14px 36px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;border:none;border-radius:var(--radius);font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(0,180,255,0.25)}
+.btn-continue:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,180,255,0.35)}
+
+/* Labeled Graphic */
+.block-graphic{margin-bottom:32px}
+.graphic-title{font-family:var(--font-display);font-size:17px;font-weight:600;margin-bottom:14px;color:var(--text-primary)}
+.graphic-container{position:relative;border-radius:var(--radius-lg);overflow:hidden;border:1px solid rgba(255,255,255,0.08)}
+.graphic-container img{width:100%;display:block}
+.hotspot-pin{position:absolute;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;transform:translate(-50%,-50%);z-index:5}
+.hotspot-pin::after{content:'';position:absolute;width:100%;height:100%;border-radius:50%;animation:ping 2s infinite}
+.hotspot-pin.amber{background:var(--warning);box-shadow:0 0 12px rgba(245,158,11,0.5)}
+.hotspot-pin.amber::after{background:rgba(245,158,11,0.3)}
+.hotspot-pin.purple{background:var(--purple);box-shadow:0 0 12px rgba(167,139,250,0.5)}
+.hotspot-pin.purple::after{background:rgba(167,139,250,0.3)}
+.hotspot-pin.red{background:var(--safety-red);box-shadow:0 0 12px var(--safety-glow)}
+.hotspot-pin.red::after{background:rgba(255,59,59,0.3)}
+.hotspot-pin.blue{background:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+.hotspot-pin.blue::after{background:rgba(0,180,255,0.3)}
+.hotspot-pin .pin-dot{width:8px;height:8px;border-radius:50%;background:#fff;z-index:1}
+.hotspot-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--bg-primary);border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius);padding:12px 16px;min-width:220px;max-width:300px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10;box-shadow:var(--shadow)}
+.hotspot-pin:hover .hotspot-tooltip,.hotspot-pin.active .hotspot-tooltip{opacity:1;pointer-events:auto}
+.tooltip-label{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.tooltip-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+
+/* Terminology highlight */
+.term{border-bottom:1px dashed var(--accent);color:var(--accent);cursor:help;position:relative}
+.term:hover::after{content:attr(data-def);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg-primary);border:1px solid var(--accent-border);border-radius:var(--radius);padding:10px 14px;font-size:12px;color:var(--text-secondary);width:260px;z-index:50;box-shadow:var(--shadow);white-space:normal;line-height:1.5}
+
+/* Score/Results */
+.score-card{background:var(--bg-card);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:32px;text-align:center;margin-bottom:24px}
+.score-ring{width:120px;height:120px;margin:0 auto 16px}
+.score-value{font-family:var(--font-display);font-size:42px;font-weight:700;color:var(--accent)}
+.score-label{font-size:13px;color:var(--text-muted)}
+.competency-bar{margin-bottom:12px}
+.comp-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.comp-name{color:var(--text-primary)}
+.comp-val{color:var(--accent);font-family:var(--font-mono)}
+.comp-track{height:8px;background:var(--bg-surface);border-radius:4px;overflow:hidden}
+.comp-fill{height:100%;border-radius:4px;transition:width .8s ease}
+
+@keyframes ping{0%{transform:scale(1);opacity:0.6}100%{transform:scale(2.2);opacity:0}}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  .hamburger{display:flex}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .lesson-container{padding:28px 18px 60px}
+  .block-hero{margin:-28px -18px 28px;padding:48px 24px 40px}
+  .hero-title{font-size:24px}
+  .block-text-image{grid-template-columns:1fr;gap:18px}
+  .block-text-image.reverse{direction:ltr}
+}
+@media(max-width:480px){
+  .hero-meta{flex-direction:column;gap:8px}
+  .hdr{padding:0 12px}
+}
+
+/* ─── OVERLAY ─── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:140}
+.sidebar-overlay.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-left">
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+    <div class="logo-mark">A</div>
+    <div class="logo-text"><span>ACE</span> Training Platform</div>
+  </div>
+  <div class="hdr-right">
+    <span class="progress-pill" id="progressPill">0% COMPLETE</span>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar"></nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <div class="lesson-container" id="lessonContent"></div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ACE Training Platform — Rise-Style Module Engine
+   ═══════════════════════════════════════════════════════════════ */
+
+// ── COURSE STRUCTURE ──
+const COURSE = {
+  title: 'Avionics CNS Testing with AVX-10K',
+  subtitle: 'Beechcraft Bonanza C8200 · Garmin G1000',
+  sections: [
+    { label: 'INTRODUCTION', lessons: [
+      { id: 'L0', title: 'Mission Briefing', icon: '🎯' }
+    ]},
+    { label: 'TRANSPONDER', lessons: [
+      { id: 'L1', title: 'Equipment & Connection', icon: '🔌' },
+      { id: 'L2', title: 'Transponder Testing', icon: '📡' }
+    ]},
+    { label: 'ADS-B & TCAS', lessons: [
+      { id: 'L3', title: 'ADS-B Verification', icon: '🛰' },
+      { id: 'L4', title: 'TCAS Testing', icon: '✈' }
+    ]},
+    { label: 'NAV & COM', lessons: [
+      { id: 'L5', title: 'NAV/ILS & COM Testing', icon: '📻' }
+    ]},
+    { label: 'ASSESSMENT', lessons: [
+      { id: 'L6', title: 'Component Identification', icon: '🔍' },
+      { id: 'L7', title: 'Troubleshooting Scenarios', icon: '⚡' }
+    ]},
+    { label: 'SUMMARY', lessons: [
+      { id: 'L8', title: 'Your Results', icon: '🏆' }
+    ]}
+  ]
+};
+
+const TOTAL_LESSONS = 9;
+const LS_KEY = 'ace_rise_v2';
+
+// ── STATE ──
+let state = loadState();
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_KEY));
+    if (s && s.version === 2) return s;
+  } catch(e) {}
+  return { version: 2, current: 'L0', completed: [], kcAnswers: {}, scores: {} };
+}
+function saveState() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function isCompleted(id) { return state.completed.includes(id); }
+function markComplete(id) { if (!isCompleted(id)) { state.completed.push(id); saveState(); renderSidebar(); updateProgress(); } }
+
+// ── TERMINOLOGY ──
+const TERMS = {
+  'Mode S': 'Secondary surveillance radar mode using selective 24-bit addressing for individual aircraft interrogation.',
+  'ADS-B': 'Automatic Dependent Surveillance-Broadcast — aircraft broadcasts GPS position, altitude, speed, and ID.',
+  'FAR Part 43': 'Federal Aviation Regulation governing maintenance, testing, and alteration of aircraft and avionics.',
+  'Transponder Coupler': 'RF coupling device that attaches directly to aircraft antenna for closed-path ground testing.',
+  'StrataSync': 'VIAVI cloud platform for managing test data, instrument configs, software updates, and reports.',
+  'Squawk Code': 'Four-digit octal code (0000–7777) for ATC identification. 1200 = standard VFR.',
+  'BOT ERP': 'Bottom Effective Radiated Power — transponder output power measured at antenna in dBm.',
+  'DF17': 'Downlink Format 17 — Mode S extended squitter used for ADS-B Out transmissions.',
+  'SELCAL': 'Selective Calling — ground-to-air alert system using unique 4-letter tone codes (e.g. AC-BD).',
+  'TCAS': 'Traffic Alert and Collision Avoidance System — interrogates nearby transponders to detect traffic.',
+  'TAS': 'Traffic Advisory System — provides traffic advisories without resolution advisories.',
+  'ILS': 'Instrument Landing System — provides lateral (localizer) and vertical (glideslope) guidance.',
+  'PFD': 'Primary Flight Display — main glass cockpit screen showing attitude, airspeed, altitude, heading.',
+  'MFD': 'Multi-Function Display — secondary screen showing map, traffic, engine instruments, system pages.',
+  'CNS': 'Communication, Navigation, Surveillance — the three avionics categories tested by AVX-10K.'
+};
+
+function hlTerms(text) {
+  let result = text;
+  Object.entries(TERMS).forEach(([term, def]) => {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b(${escaped})\\b`, 'g');
+    result = result.replace(regex, `<span class="term" data-def="${def.replace(/"/g,'&quot;')}">$1</span>`);
+  });
+  return result;
+}
+
+// ── SIDEBAR ──
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  let html = `<div class="sb-header">
+    <div class="sb-title">${COURSE.title}</div>
+    <div class="sb-sub">${COURSE.subtitle}</div>
+    <div class="sb-progress"><div class="sb-progress-fill" style="width:${Math.round(state.completed.length/TOTAL_LESSONS*100)}%"></div></div>
+  </div>`;
+  COURSE.sections.forEach(sec => {
+    html += `<div class="sb-section"><div class="sb-section-label">${sec.label}</div>`;
+    sec.lessons.forEach(l => {
+      const active = state.current === l.id ? ' active' : '';
+      const done = isCompleted(l.id) ? ' completed' : '';
+      const icon = isCompleted(l.id) ? '✓' : l.icon;
+      html += `<div class="sb-lesson${active}${done}" onclick="goLesson('${l.id}')">
+        <div class="sb-icon">${icon}</div>
+        <span>${l.title}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  sb.innerHTML = html;
+}
+
+function updateProgress() {
+  const pct = Math.round(state.completed.length / TOTAL_LESSONS * 100);
+  document.getElementById('progressPill').textContent = `${pct}% COMPLETE`;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+// ── NAVIGATION ──
+function goLesson(id) {
+  state.current = id;
+  saveState();
+  renderSidebar();
+  renderLesson(id);
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextLesson() {
+  const ids = [];
+  COURSE.sections.forEach(s => s.lessons.forEach(l => ids.push(l.id)));
+  const idx = ids.indexOf(state.current);
+  markComplete(state.current);
+  if (idx < ids.length - 1) goLesson(ids[idx + 1]);
+}
+
+// ── KNOWLEDGE CHECK HANDLER ──
+function handleKC(kcId, optIdx, correctIdx, feedbackPass, feedbackFail, isSafety) {
+  if (state.kcAnswers[kcId] !== undefined) return;
+  state.kcAnswers[kcId] = optIdx;
+  const isCorrect = optIdx === correctIdx;
+  state.scores[kcId] = isCorrect ? 1 : 0;
+  saveState();
+
+  const container = document.getElementById('kc-' + kcId);
+  const options = container.querySelectorAll('.kc-option');
+  options.forEach((opt, i) => {
+    opt.style.pointerEvents = 'none';
+    if (i === correctIdx) opt.classList.add('correct');
+    if (i === optIdx && !isCorrect) opt.classList.add('wrong');
+  });
+
+  const fb = container.querySelector('.kc-feedback');
+  fb.classList.add('show', isCorrect ? 'pass' : 'fail');
+  fb.textContent = isCorrect ? feedbackPass : feedbackFail;
+}
+
+// ── ACCORDION ──
+function toggleAcc(el) {
+  el.closest('.acc-item').classList.toggle('open');
+}
+
+// ── BLOCK HELPERS ──
+function hero(sectionLabel, title, desc, meta) {
+  return `<div class="block-hero">
+    <div class="hero-section-label">${sectionLabel}</div>
+    <h1 class="hero-title">${title}</h1>
+    <p class="hero-desc">${desc}</p>
+    ${meta ? `<div class="hero-meta">${meta.map(m => `<div class="hero-meta-item"><div class="dot" style="background:${m.color}"></div>${m.text}</div>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function objectives(items) {
+  return `<div class="block-objectives">
+    <div class="obj-header">🎯 Learning Objectives</div>
+    <ul class="obj-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>
+  </div>`;
+}
+
+function text(content) {
+  return `<div class="block-text">${hlTerms(content)}</div>`;
+}
+
+function textImage(textHtml, imgSrc, imgAlt, reverse) {
+  return `<div class="block-text-image${reverse ? ' reverse' : ''}">
+    <div class="ti-text">${hlTerms(textHtml)}</div>
+    <div class="ti-image"><img src="${imgSrc}" alt="${imgAlt}" onerror="this.parentElement.innerHTML='<div style=\\'padding:40px;text-align:center;background:var(--bg-surface);color:var(--text-muted);font-size:13px\\'>${imgAlt}</div>'"></div>
+  </div>`;
+}
+
+function callout(type, title, body) {
+  const icons = { info: 'ℹ️', warn: '⚠️', safety: '🛑' };
+  return `<div class="block-callout ${type}">
+    <div class="callout-icon">${icons[type]}</div>
+    <div class="callout-body ${type}">
+      <div class="callout-title">${title}</div>
+      <p>${hlTerms(body)}</p>
+    </div>
+  </div>`;
+}
+
+function quote(text, speaker) {
+  return `<div class="block-quote">
+    <div class="quote-text">"${text}"</div>
+    <div class="quote-attr">— ${speaker}</div>
+  </div>`;
+}
+
+function takeaways(items) {
+  return `<div class="block-takeaways">
+    <div class="tk-header">✅ Key Takeaways</div>
+    <ul class="tk-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>
+  </div>`;
+}
+
+function divider() { return '<div class="block-divider"></div>'; }
+
+function continueBtn(label) {
+  return `<div class="block-continue"><button class="btn-continue" onclick="nextLesson()">${label || 'Continue'} →</button></div>`;
+}
+
+function process(title, steps) {
+  return `<div class="block-process">
+    <div class="process-title">${title}</div>
+    ${steps.map((s, i) => `<div class="process-step">
+      <div class="step-num">${i + 1}</div>
+      <div class="step-content">
+        <div class="step-action">${hlTerms(s.action)}</div>
+        ${s.detail ? `<div class="step-detail">${hlTerms(s.detail)}</div>` : ''}
+        ${s.verify ? `<div class="step-verify">✓ ${s.verify}</div>` : ''}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function accordion(title, items) {
+  return `<div class="block-accordion">
+    ${title ? `<div style="font-family:var(--font-display);font-size:17px;font-weight:600;margin-bottom:12px;color:var(--text-primary)">${title}</div>` : ''}
+    ${items.map(it => `<div class="acc-item${it.open ? ' open' : ''}">
+      <div class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="acc-trigger-text">${it.title}</span>
+        <span class="acc-arrow">▼</span>
+      </div>
+      <div class="acc-body">${hlTerms(it.body)}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function kc(id, question, options, correctIdx, passFb, failFb, isSafety) {
+  const prev = state.kcAnswers[id];
+  const answered = prev !== undefined;
+  return `<div class="block-kc${isSafety ? ' safety-gate' : ''}" id="kc-${id}">
+    <div class="kc-header">${isSafety ? '🛑 Safety Check' : '💡 Knowledge Check'}</div>
+    <div class="kc-question">${question}</div>
+    ${options.map((o, i) => {
+      let cls = 'kc-option';
+      if (answered) {
+        if (i === correctIdx) cls += ' correct';
+        else if (i === prev && prev !== correctIdx) cls += ' wrong';
+      }
+      return `<div class="${cls}" style="${answered ? 'pointer-events:none' : ''}" onclick="handleKC('${id}',${i},${correctIdx},\`${passFb.replace(/`/g,"'")}\`,\`${failFb.replace(/`/g,"'")}\`,${!!isSafety})">
+        <div class="kc-radio"></div>
+        <span>${o}</span>
+      </div>`;
+    }).join('')}
+    <div class="kc-feedback${answered ? (state.scores[id] ? ' show pass' : ' show fail') : ''}">${answered ? (state.scores[id] ? passFb : failFb) : ''}</div>
+  </div>`;
+}
+
+function labeledGraphic(title, imgSrc, pins) {
+  return `<div class="block-graphic">
+    <div class="graphic-title">${title}</div>
+    <div class="graphic-container">
+      <img src="${imgSrc}" alt="${title}" onerror="this.style.height='200px';this.style.background='var(--bg-surface)'">
+      ${pins.map(p => `<div class="hotspot-pin ${p.color}" style="left:${p.x}%;top:${p.y}%">
+        <div class="pin-dot"></div>
+        <div class="hotspot-tooltip">
+          <div class="tooltip-label">${p.label}</div>
+          <div class="tooltip-desc">${p.desc}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LESSON RENDERERS
+// ═══════════════════════════════════════════════════════════════
+
+function renderLesson(id) {
+  const el = document.getElementById('lessonContent');
+  const renderers = { L0:renderL0, L1:renderL1, L2:renderL2, L3:renderL3, L4:renderL4, L5:renderL5, L6:renderL6, L7:renderL7, L8:renderL8 };
+  el.innerHTML = renderers[id] ? renderers[id]() : '<p>Lesson not found.</p>';
+}
+
+// ── L0: MISSION BRIEFING ──
+function renderL0() {
+  return hero('Introduction', 'Mission Briefing', 'Welcome to the ACE Training Platform. In this course, you\'ll learn to perform a complete CNS (Communication, Navigation, Surveillance) avionics ramp test on a Garmin G1000-equipped aircraft using the VIAVI AVX-10K test set.', [
+    { color: 'var(--accent)', text: '~12 min source video' },
+    { color: 'var(--warning)', text: '5 test procedures' },
+    { color: 'var(--success)', text: '15 key terms' }
+  ])
+  + objectives([
+    'Identify the role of each piece of test equipment in the AVX-10K system',
+    'Understand the five CNS test categories covered: Transponder, ADS-B, TCAS, NAV/ILS, and COM',
+    'Recognize the importance of manufacturer procedures and FAR Part 43 compliance',
+    'Navigate the Garmin G1000 cockpit interface for avionics testing'
+  ])
+  + text('<h2>What You\'re About to Learn</h2><p>This training is based on a real-world avionics testing demonstration performed at <strong>Banyan Air Service</strong> in Fort Lauderdale, Florida. The demonstration was led by <strong>Kenny Parsons</strong> from VIAVI Solutions, with <strong>David Hauschild</strong> from EDMO Distributors hosting, and <strong>Christian Rivera</strong> — the Avionics Crew Lead at Banyan — assisting from the cockpit.</p><p>Together, they walked through a complete ramp test of a <strong>Beechcraft Bonanza C8200</strong> equipped with a <strong>Garmin G1000</strong> integrated flight deck. The test set used was the <strong>VIAVI AVX-10K</strong> — a next-generation CNS ramp test platform that replaces both the legacy IFR 6000 and IFR 4000.</p>')
+  + quote('For all work performed on this aircraft, we follow the aircraft manufacturer\'s approved procedures. Always reference the applicable maintenance manual and service documentation before conducting any test or inspection.', 'Christian Rivera, Avionics Crew Lead — Banyan Air Service')
+  + callout('safety', 'Regulatory Compliance', 'Every avionics test described in this course must be performed in accordance with FAR Part 43 and the aircraft manufacturer\'s maintenance manual. Non-compliance can result in invalid test results, equipment damage, and regulatory violations.')
+  + text('<h2>The Aircraft & Equipment</h2><p>The test platform is a <strong>Beechcraft Bonanza C8200</strong> single-engine piston aircraft. Its avionics suite includes:</p>')
+  + accordion('Aircraft Systems', [
+    { title: 'Garmin G1000 Integrated Flight Deck', body: 'Two-screen glass cockpit with PFD (Primary Flight Display) on the left and MFD (Multi-Function Display) on the right. The PFD shows attitude, airspeed, altitude, heading, and hosts the transponder (XPDR) soft key controls. The MFD handles GPS status, TCAS traffic display, and system pages.', open: true },
+    { title: 'GTX 345 Transponder', body: 'Garmin Mode S transponder with ADS-B Out capability integrated in the G1000 suite. Supports Mode A, Mode C, Mode S, and ADS-B. Accessed via the XPDR soft key on the PFD.' },
+    { title: 'GMA Audio Panel', body: 'Garmin audio selector panel that controls COM audio routing. Must be configured to route audio to speaker or headphones during COM and SELCAL testing.' },
+    { title: 'GTS TAS (Traffic Advisory System)', body: 'Garmin traffic system that provides traffic advisories based on transponder interrogation. Displayed on the MFD TCAS page. Can show simulated targets during AVX-10K TCAS testing.' }
+  ])
+  + text('<h2>The Test Equipment</h2><p>The <strong>VIAVI AVX-10K</strong> is a tablet-based CNS ramp test set — essentially an all-in-one replacement for legacy transponder, DME, and NAFCOM test equipment. It features:</p>')
+  + accordion('AVX-10K System Components', [
+    { title: 'AVX-10K Main Unit', body: 'The core test set with an I/O board featuring color-coded RF ports. The <strong style="color:var(--error)">Red port (RF I/O)</strong> is for direct-connect transponder testing via coupler. The <strong style="color:var(--success)">Green port (ANT)</strong> is for antenna-radiated TCAS, NAV, and COM testing. This distinction is critical.', open: true },
+    { title: 'Transponder Coupler', body: 'RF coupler that attaches directly to the aircraft\'s bottom-mounted transponder antenna. Creates a closed RF path for ground testing without over-the-air radiation — which would cause interference and potential FCC violations.' },
+    { title: 'GPSG-1000 GPS Simulator', body: 'Companion tablet-form GPS constellation simulator. Required for ADS-B testing because the transponder needs valid GPS position data to transmit ADS-B messages, even on the ground.' },
+    { title: 'Flat Panel Antenna', body: 'Directional antenna for TCAS testing. Must be positioned at a 45-degree angle aimed at the aircraft\'s TCAS antenna and connected to the ANT port.' },
+    { title: 'Extensible (DSRC) Antenna', body: 'Portable whip antenna used for NAV/ILS and COM over-the-air testing. Positioned outside the aircraft within line-of-sight to the appropriate aircraft antenna.' },
+    { title: 'iPad Remote Display', body: 'The AVX-10K can be controlled wirelessly via an iPad, allowing the technician to operate the test set from outside the aircraft while monitoring results in the cockpit simultaneously.' }
+  ])
+  + divider()
+  + text('<h2>Course Structure</h2><p>This course is organized into <strong>9 lessons</strong> covering equipment familiarization, five test procedures (Transponder, ADS-B, TCAS, NAV/ILS, COM), assessments, and a summary of your results. Use the sidebar to navigate between lessons at any time.</p><p>Each lesson includes learning objectives, step-by-step procedures, knowledge checks, and key takeaways. <strong>Safety-critical knowledge checks</strong> (marked with 🛑) test concepts where mistakes could damage equipment or compromise test validity.</p>')
+  + takeaways([
+    'The AVX-10K replaces the IFR 6000, IFR 4000, and NAFCOM test sets in one platform',
+    'Five test categories are covered: Transponder, ADS-B, TCAS, NAV/ILS, and COM',
+    'All testing must comply with FAR Part 43 and aircraft manufacturer procedures',
+    'The I/O board has two ports: Red (RF I/O) for direct-connect, Green (ANT) for radiated tests',
+    'ADS-B testing requires a separate GPS simulator (GPSG-1000)'
+  ])
+  + continueBtn('Begin Training');
+}
+
+// ── L1: EQUIPMENT & CONNECTION ──
+function renderL1() {
+  return hero('Transponder', 'Equipment & Connection', 'Learn how to set up the AVX-10K and establish a direct RF connection to the aircraft transponder antenna using the coupler.', [
+    { color: 'var(--warning)', text: 'Procedure 1 of 5' },
+    { color: 'var(--error)', text: '2 safety gates' }
+  ])
+  + objectives([
+    'Identify the correct RF port on the AVX-10K for transponder testing (RF I/O, red)',
+    'Connect the transponder coupler to the aircraft bottom antenna securely',
+    'Configure the G1000 PFD transponder controls for testing',
+    'Understand the difference between direct-connect and radiated test methods'
+  ])
+  + text('<h2>Direct-Connect vs. Radiated Testing</h2><p>One of the most important concepts in avionics ramp testing is the difference between <strong>direct-connect</strong> and <strong>radiated (over-the-air)</strong> testing methods:</p><p><strong>Direct-connect testing</strong> uses a physical coupler attached to the aircraft antenna. The RF signal travels through a cable and coupler — never leaving the closed system. This method is used for <strong>transponder and ADS-B</strong> testing because it provides the most accurate measurements and eliminates RF interference with other aircraft on the ramp.</p><p><strong>Radiated testing</strong> uses an antenna positioned near the aircraft. The signal travels through the air between the test set antenna and the aircraft antenna. This method is used for <strong>TCAS, NAV/ILS, and COM</strong> testing because these systems require verifying the aircraft\'s antenna reception and signal processing end-to-end.</p>')
+  + callout('info', 'Why Direct-Connect for Transponders?', 'During ground testing, an uncoupled transponder transmission at 1090 MHz could be received by ATC radar and other aircraft, creating false targets and potential safety hazards. The coupler creates a closed RF path that prevents this interference.')
+  + divider()
+  + text('<h2>Step-by-Step: Physical Connection</h2>')
+  + process('Equipment Connection Procedure', [
+    { action: 'Connect RF cable from AVX-10K I/O board to transponder coupler', detail: 'Use the RED port labeled RF I/O on the I/O board. This is the direct-connect port for transponder testing.', verify: 'Cable firmly seated in RF I/O port' },
+    { action: 'Connect transponder coupler to aircraft bottom antenna', detail: 'Locate the transponder antenna on the bottom of the aircraft fuselage. Insert the coupler onto the antenna and engage the action lever to lock it securely.', verify: 'Coupler securely attached, lever actuated' },
+    { action: 'Position AVX-10K outside the aircraft', detail: 'The test set should be placed on a stable surface near the aircraft with clear access to the I/O board connections.', verify: 'Equipment stable, cables not strained' }
+  ])
+  + kc('kc_l1_1', 'Which port on the AVX-10K do you connect the transponder coupler cable to?',
+    ['The green ANT port — for antenna radiation', 'The red RF I/O port — for direct-connect with coupler', 'Either port works for transponder testing', 'The USB data port on the side'],
+    1,
+    'Correct! The red RF I/O port is specifically for direct-connect transponder testing using the coupler.',
+    'Incorrect. The RED RF I/O port is for direct-connect transponder testing. The GREEN ANT port is for radiated tests (TCAS, NAV, COM). Using the wrong port could damage equipment or give false readings.',
+    true)
+  + divider()
+  + text('<h2>G1000 Cockpit Configuration</h2><p>With the physical connections established, the next step is configuring the aircraft\'s transponder from the cockpit.</p>')
+  + labeledGraphic('G1000 Cockpit Layout', 'output/keyframes/scene_0002.jpg', [
+    { x: 30, y: 50, color: 'purple', label: 'PFD (Primary Flight Display)', desc: 'Left screen — attitude, airspeed, altitude, heading. XPDR soft key at bottom for transponder controls.' },
+    { x: 65, y: 50, color: 'purple', label: 'MFD (Multi-Function Display)', desc: 'Right screen — map, GPS status, TCAS traffic, engine instruments, system pages.' }
+  ])
+  + process('G1000 Transponder Configuration', [
+    { action: 'On PFD, select XPDR soft key at the bottom of the screen', detail: 'This brings up the transponder controls along the soft key bar.', verify: 'XPDR controls visible on PFD' },
+    { action: 'Check altitude configuration — verify ALT mode is active', detail: 'ALT mode means the transponder reports pressure altitude. This is required for FAR Part 43 testing.', verify: 'ALT mode indicated' },
+    { action: 'Press CODE soft key to set squawk code to 1200', detail: 'Code 1200 is the standard VFR conspicuity code used for ground testing.', verify: 'Green indication showing 1200 and ALT at bottom of PFD' }
+  ])
+  + kc('kc_l1_2', 'What must you verify about the coupler connection before starting any transponder test?',
+    ['That the coupler is the right color', 'That the coupler is inserted onto the antenna and the action lever is engaged for a secure fit', 'That the coupler cable is at least 50 feet long', 'That the coupler is connected to the ANT port'],
+    1,
+    'Correct! A loose coupler causes signal leakage — leading to inaccurate test results, potential RF exposure, and possible interference with other aircraft.',
+    'Incorrect. You must verify the coupler is inserted onto the antenna and the lever is actuated. A loose coupler means signal leakage, inaccurate results, and potential RF exposure to nearby personnel.',
+    true)
+  + takeaways([
+    'Transponder testing uses the RED RF I/O port with a direct-connect coupler',
+    'The coupler must be securely attached with the action lever engaged',
+    'TCAS, NAV, and COM use the GREEN ANT port with radiated antennas',
+    'On the G1000, access transponder controls via the XPDR soft key on the PFD',
+    'Verify squawk code 1200 and ALT mode before testing'
+  ])
+  + continueBtn('Next: Transponder Testing');
+}
+
+// ── L2: TRANSPONDER TESTING ──
+function renderL2() {
+  return hero('Transponder', 'Transponder Testing', 'Execute the automated FAR Part 43 Mode S transponder test on the AVX-10K and interpret the results.', [
+    { color: 'var(--warning)', text: 'Procedure 1 of 5' },
+    { color: 'var(--accent)', text: '9 test parameters' }
+  ])
+  + objectives([
+    'Navigate the AVX-10K XPDR-Auto test setup screen',
+    'Verify all configuration parameters before running a test',
+    'Interpret TX/RX indicators and test progress',
+    'Read and understand FAR Part 43 Mode S test results',
+    'Save results and upload to StrataSync'
+  ])
+  + text('<h2>Test Configuration</h2><p>Before running any automated test, you must verify the AVX-10K configuration matches your actual equipment setup. Incorrect parameters produce invalid results — which could pass a failing transponder or fail a good one. Both outcomes have serious flight safety implications.</p>')
+  + quote('The equipment will ask you if all the parameters are proper or correct. Once you read them and confirm, you can press Continue Test.', 'Kenny Parsons, VIAVI Solutions')
+  + process('Running the Transponder Test', [
+    { action: 'Navigate to XPDR-Auto test on the AVX-10K', detail: 'Select the transponder tab, then XPDR-Auto. The setup screen shows RF Port, Cable Settings, Coupler Settings, and UUT Address.', verify: 'XPDR-Auto (RF I/O - CPLR) displayed' },
+    { action: 'Verify all setup parameters', detail: 'Confirm: RF Port = Direct Connect with Coupler, Cable Settings correct, Coupler Settings correct, UUT Address = Auto, Power Units = dBm.', verify: 'All settings match aircraft configuration' },
+    { action: 'Press RUN to begin the test', detail: 'The Verify Configuration dialog appears showing: Cable Length 25ft, Cable Loss 2.41dB, Coupler Loss 0.6dB.', verify: 'Verify Configuration dialog displayed' },
+    { action: 'Review ALL parameters, then press CONTINUE TEST', detail: 'This is a critical safety step. You must review every parameter before proceeding. Once confirmed, the automated FAR Part 43 Mode S test begins.', verify: 'TX/RX indicators active, progress advancing' },
+    { action: 'Monitor test progress', detail: 'Watch for TX/RX indication (the test set is transmitting interrogations and receiving replies). A percent indicator shows test progress. Green checkmarks appear as each parameter passes.', verify: 'Green checkmarks appearing for each test point' },
+    { action: 'Review results when test completes', detail: 'All parameters should show PASS with green indicators.', verify: 'All parameters PASS' },
+    { action: 'Save results and create PDF report', detail: 'Results can be saved locally, converted to PDF, or uploaded to StrataSync cloud for record-keeping.', verify: 'Report saved/uploaded successfully' }
+  ])
+  + callout('warn', 'Verify Configuration Dialog', 'The Verify Configuration dialog is your last chance to catch parameter errors before the test runs. Always review: Port configuration, Cable length and loss, Coupler loss, UUT Address mode. Never blindly press Continue Test.')
+  + divider()
+  + text('<h2>Understanding the Test Results</h2><p>The FAR Part 43 Mode S transponder test checks multiple parameters. Here\'s what each one means:</p>')
+  + accordion('Test Parameters Explained', [
+    { title: 'Level — Value: 2', body: 'Mode S transponder level. Level 2 indicates the transponder supports basic Mode S with SI (Surveillance Identifier) capability. Levels range from 1–5, with higher levels supporting more features.', open: true },
+    { title: 'A Code 1200 — PASS', body: 'Mode A reply. The transponder correctly replies with the Mode A squawk code 1200 (the VFR code we set on the G1000). This is the basic ATC identification response.' },
+    { title: 'C ALT 900 ft — PASS', body: 'Mode C altitude reply. The transponder correctly reports pressure altitude. The 900 ft reading reflects the airport field elevation at Fort Lauderdale (actual elevation ~13ft, but uncompensated barometric altitude is expected during ground testing).' },
+    { title: 'S Code 1200, S ALT 875 ft — PASS', body: 'Mode S replies. The transponder correctly responds to Mode S selective interrogation with both the identification code and altitude. The slight difference between Mode C (900ft) and Mode S (875ft) altitude is normal — they use different encoding methods.' },
+    { title: 'BOT FREQ 1090.00 MHz — PASS', body: 'Bottom Frequency. The transponder is replying on the correct frequency of 1090 MHz — the standard transponder reply frequency worldwide.' },
+    { title: 'BOT ERP 52.1 dBm — PASS', body: 'Bottom Effective Radiated Power. The transponder output power measured at the antenna is 52.1 dBm (approximately 162 watts). This must be within FAR Part 43 limits to ensure adequate signal strength for ATC detection.' },
+    { title: 'BOT MTL -71.3 dBm — PASS', body: 'Bottom Minimum Trigger Level. The minimum signal strength required to trigger a transponder reply. A value of -71.3 dBm means the transponder is sufficiently sensitive to detect interrogation signals from ATC radar.' },
+    { title: 'DF17 Detected — PASS', body: 'Downlink Format 17 detected. This confirms the transponder is transmitting ADS-B Out messages via Mode S extended squitter. DF17 is the message format that carries ADS-B position, velocity, and identification data.' }
+  ])
+  + kc('kc_l2_1', 'What does the "DF17 Detected" parameter in the transponder test results confirm?',
+    ['The transponder frequency is correct', 'The transponder is transmitting ADS-B Out messages via Mode S extended squitter', 'The transponder power output meets specifications', 'The antenna coupler is properly connected'],
+    1,
+    'Correct! DF17 (Downlink Format 17) is the Mode S extended squitter format used for ADS-B Out. Detecting it confirms ADS-B functionality.',
+    'Incorrect. DF17 stands for Downlink Format 17 — the Mode S extended squitter message format used for ADS-B Out transmissions. Its detection confirms ADS-B is working.')
+  + divider()
+  + text('<h2>StrataSync Cloud Upload</h2><p>After completing any test, the AVX-10K can upload results to <strong>StrataSync</strong> — VIAVI\'s cloud platform. This provides:</p>')
+  + accordion('StrataSync Benefits', [
+    { title: 'Cloud Record-Keeping', body: 'All test results are stored securely in the cloud, creating a verifiable audit trail for FAR Part 43 compliance documentation.', open: true },
+    { title: 'Fleet Management', body: 'Track test history across multiple aircraft. Identify trends in transponder performance over time.' },
+    { title: 'PDF Report Generation', body: 'Generate formatted test reports that can be printed or shared electronically with aircraft owners, inspectors, or regulatory authorities.' },
+    { title: 'Remote Access', body: 'Access test data from any device with an internet connection — useful for review, analysis, or sharing with remote team members.' }
+  ])
+  + takeaways([
+    'Always verify ALL configuration parameters before pressing Continue Test',
+    'TX/RX indicators confirm the test set is actively communicating with the transponder',
+    'Green checkmarks and PASS indicators mean each parameter is within FAR Part 43 tolerance',
+    'DF17 Detected confirms ADS-B Out functionality via Mode S extended squitter',
+    'Save results to StrataSync for cloud-based record-keeping and reporting'
+  ])
+  + continueBtn('Next: ADS-B Verification');
+}
+
+// ── L3: ADS-B VERIFICATION ──
+function renderL3() {
+  return hero('ADS-B & TCAS', 'ADS-B Verification', 'Perform the ADS-B Auto test using the GPS simulator to verify position broadcast functionality.', [
+    { color: 'var(--warning)', text: 'Procedure 2 of 5' },
+    { color: 'var(--accent)', text: 'Requires GPS simulator' }
+  ])
+  + objectives([
+    'Understand why ADS-B testing requires a GPS simulator on the ground',
+    'Set up the GPSG-1000 GPS simulator for position simulation',
+    'Verify GPS lock on the G1000 MFD AUX page',
+    'Execute the ADS-B Auto test in surface mode',
+    'Identify the ADS-B transmission indicator on the PFD'
+  ])
+  + text('<h2>Why GPS Simulation is Required</h2><p>ADS-B (Automatic Dependent Surveillance-Broadcast) works by broadcasting the aircraft\'s GPS-derived position. The key word is <strong>"dependent"</strong> — the system depends on GPS for its position data. Without a valid GPS fix, the transponder has no position to broadcast, and ADS-B simply won\'t work.</p><p>When an aircraft is parked on the ramp, the onboard GPS receiver may or may not have satellite lock — and even if it does, the position data may not meet the accuracy requirements for ADS-B testing. This is where the <strong>VIAVI GPSG-1000 GPS Simulator</strong> comes in.</p>')
+  + callout('info', 'The GPSG-1000 Solution', 'The GPSG-1000 simulates a GPS constellation and injects a static position signal (in this case, coordinates for Fort Lauderdale: 26.19°N, 80.17°W) through an antenna coupler to the aircraft\'s GPS antenna. This guarantees a clean, repeatable GPS fix for ADS-B testing.')
+  + divider()
+  + process('ADS-B Test Procedure', [
+    { action: 'Set up GPSG-1000 GPS simulator', detail: 'Power on the GPSG-1000 and confirm it\'s simulating a static position. Use the GPSG-100 antenna coupler to inject the signal to the aircraft GPS antenna.', verify: 'GPS simulator showing active simulation with satellite tracking' },
+    { action: 'On PFD, verify XPDR in ALT mode with correct squawk code', detail: 'Same configuration as transponder test — select XPDR soft key, confirm ALT mode and code.', verify: 'XPDR showing ALT mode' },
+    { action: 'On MFD, navigate to AUX page → GPS Status', detail: 'This page shows the satellite constellation status. You need to see a 3D navigation solution with all satellite signal bars active.', verify: '3D NAV displayed, satellite bars green' },
+    { action: 'On AVX-10K, select ADS-B Auto test', detail: 'Navigate to the transponder tab, then ADS-B Auto test mode.', verify: 'ADS-B Auto test page displayed' },
+    { action: 'Set test mode to Surface mode', detail: 'Since the aircraft is on the ground, select Surface mode. This accounts for ground-specific ADS-B behavior.', verify: 'Surface mode selected' },
+    { action: 'Press RUN and observe PFD for ADS-B indicator', detail: 'Look for a small indicator near the ALT annunciation on the PFD — this shows ADS-B is actively transmitting position data.', verify: 'ADS-B indicator visible on PFD' }
+  ])
+  + kc('kc_l3_1', 'Why does ADS-B testing require a GPS simulator when the aircraft is on the ground?',
+    ['The GPS receiver is always broken on the ground', 'ADS-B depends on GPS position data to broadcast — without valid GPS, ADS-B cannot transmit', 'The FAA requires a simulator for all ground tests', 'GPS simulators are cheaper than real satellite signals'],
+    1,
+    'Correct! ADS-B is "Automatic Dependent" — it depends on GPS. Without a valid GPS fix, there\'s no position to broadcast.',
+    'Incorrect. ADS-B depends on valid GPS position data. On the ground, the GPSG-1000 provides a clean, repeatable GPS signal so the transponder has position data to broadcast.')
+  + takeaways([
+    'ADS-B depends on GPS — no GPS position means no ADS-B broadcast',
+    'The GPSG-1000 GPS simulator provides a guaranteed GPS fix for ground testing',
+    'Always verify 3D NAV on the MFD GPS status page before running ADS-B tests',
+    'Use Surface mode for ground-based ADS-B testing',
+    'The PFD ADS-B indicator confirms active position broadcast'
+  ])
+  + continueBtn('Next: TCAS Testing');
+}
+
+// ── L4: TCAS TESTING ──
+function renderL4() {
+  return hero('ADS-B & TCAS', 'TCAS Functional Test', 'Set up and execute a TCAS test using the flat panel antenna to simulate approaching traffic targets.', [
+    { color: 'var(--warning)', text: 'Procedure 3 of 5' },
+    { color: 'var(--error)', text: '2 safety gates' }
+  ])
+  + objectives([
+    'Connect the flat panel antenna to the correct AVX-10K port (ANT, not RF I/O)',
+    'Position the antenna at the proper 45-degree angle to the aircraft TCAS antenna',
+    'Configure TCAS collision scenario parameters on the AVX-10K',
+    'Verify simulated targets appear correctly on the G1000 MFD traffic display',
+    'Understand the difference between TCAS and TAS'
+  ])
+  + text('<h2>Switching to Radiated Testing</h2><p>The TCAS test marks an important transition. Unlike the transponder test (which used direct-connect via coupler), TCAS testing uses <strong>over-the-air (radiated) transmission</strong>. This is because TCAS works by interrogating nearby transponders through antennas — so to properly test it, we need to simulate that over-the-air signal path.</p>')
+  + callout('safety', 'Critical Port Selection', 'For TCAS testing, connect the flat panel antenna to the <strong>GREEN ANT port</strong> on the AVX-10K I/O board. Do NOT use the RED RF I/O port — that port is only for direct-connect transponder testing. Using the wrong port could damage equipment or produce invalid results.')
+  + divider()
+  + process('TCAS Test Setup', [
+    { action: 'Connect flat panel antenna to AVX-10K ANT port (green)', detail: 'The ANT port is the green-labeled port on the I/O board. Make absolutely sure you are NOT connecting to the red RF I/O port.', verify: 'Cable in green ANT port' },
+    { action: 'Position antenna at 45° angle aimed at aircraft TCAS antenna', detail: 'The flat panel antenna is directional. It must be aimed at the TCAS antenna on the aircraft at approximately a 45-degree angle for proper signal coupling.', verify: 'Antenna positioned at 45° to TCAS antenna' },
+    { action: 'Verify TCAS setup on AVX-10K — antenna type Z10, height, cable settings', detail: 'These parameters ensure the simulated targets appear at the correct range and altitude on the TCAS display.', verify: 'All settings match installed equipment' },
+    { action: 'Configure collision scenario parameters', detail: 'Set up: collision scenario >200ft, intruder type ATCRBS, range start 12nm, range rate 300kts, altitude rate 83fpm.', verify: 'Test parameters match desired scenario' },
+    { action: 'Run test and observe MFD TCAS page', detail: 'Watch for simulated target(s) appearing on the MFD traffic display. The target should track from the configured starting range inward.', verify: 'Target visible on MFD at expected range' },
+    { action: 'Use range knob on MFD to zoom in and verify target details', detail: 'The range knob on the right side of the MFD lets you zoom in. Verify the target position and altitude match the AVX-10K presets.', verify: 'Target matches preset values' }
+  ])
+  + kc('kc_l4_1', 'Which port do you connect the TCAS test antenna to?',
+    ['The red RF I/O port — same as transponder', 'The ANT port (green) — for antenna radiation, NOT the RF I/O port', 'The USB port on the side of the AVX-10K', 'Any available port on the I/O board'],
+    1,
+    'Correct! TCAS testing uses the GREEN ANT port for radiated testing. The RED RF I/O port is only for direct-connect transponder testing.',
+    'Incorrect. The GREEN ANT port is correct for TCAS. Using the RED RF I/O port could damage equipment. Remember: RED = direct-connect (transponder), GREEN = antenna radiation (TCAS, NAV, COM).',
+    true)
+  + kc('kc_l4_2', 'At what angle should the flat panel antenna be directed at the TCAS antenna?',
+    ['90 degrees (perpendicular)', '45 degrees', '0 degrees (parallel)', 'Any angle works'],
+    1,
+    'Correct! The flat panel antenna should be positioned at approximately 45 degrees to the aircraft TCAS antenna for proper signal coupling.',
+    'Incorrect. The antenna must be at a 45-degree angle. Incorrect positioning produces unreliable test results that could miss a faulty TCAS installation.',
+    true)
+  + text('<h2>TCAS vs. TAS</h2><p>This aircraft is equipped with a Garmin <strong>GTS TAS (Traffic Advisory System)</strong> rather than a full TCAS II system. The key difference:</p>')
+  + accordion('TCAS vs TAS Comparison', [
+    { title: 'TAS — Traffic Advisory System', body: 'Provides <strong>Traffic Advisories (TAs)</strong> only — visual and aural alerts about nearby traffic. Does NOT provide resolution advisories (climb/descend commands). Typical on general aviation aircraft like this Bonanza.', open: true },
+    { title: 'TCAS II — Traffic Alert & Collision Avoidance System', body: 'Provides both Traffic Advisories (TAs) and <strong>Resolution Advisories (RAs)</strong> — coordinated climb/descend commands to avoid collision. Required on most transport-category aircraft (Part 121 operations).' }
+  ])
+  + takeaways([
+    'TCAS testing uses the GREEN ANT port — never the RED RF I/O port',
+    'Position the flat panel antenna at 45° to the aircraft TCAS antenna',
+    'Verify antenna type (Z10), height, and cable settings before testing',
+    'Simulated targets should appear on the MFD TCAS page at the configured range',
+    'This aircraft has TAS (Traffic Advisories only), not full TCAS II (which adds Resolution Advisories)'
+  ])
+  + continueBtn('Next: NAV/ILS & COM Testing');
+}
+
+// ── L5: NAV/ILS & COM TESTING ──
+function renderL5() {
+  return hero('NAV & COM', 'NAV/ILS & COM Testing', 'Test the aircraft navigation and communication systems using the extensible antenna for over-the-air signal generation and reception.', [
+    { color: 'var(--warning)', text: 'Procedures 4 & 5 of 5' },
+    { color: 'var(--accent)', text: '3 test modes: ILS, AM, SELCAL' }
+  ])
+  + objectives([
+    'Set up the extensible antenna for NAV/ILS and COM radiated testing',
+    'Execute an ILS localizer test and verify CDI needle deflection on the PFD',
+    'Perform COM receive and generate tests at 118 MHz',
+    'Test SELCAL tone generation and verify audio through the aircraft speaker',
+    'Use the iPad remote display for simultaneous monitoring'
+  ])
+  + text('<h2>NAV/ILS Functional Test</h2><p>The NAV/ILS test verifies the aircraft\'s navigation receiver can correctly receive and display ILS (Instrument Landing System) signals. The AVX-10K generates an ILS localizer signal that the G1000 should detect and display as CDI (Course Deviation Indicator) needle deflection on the PFD.</p>')
+  + process('NAV/ILS Test Procedure', [
+    { action: 'Connect extensible antenna to AVX-10K ANT port and extend', detail: 'Use the same GREEN ANT port as TCAS testing. Extend the whip antenna fully and position it within line-of-sight of the aircraft NAV antenna.', verify: 'Antenna extended, line-of-sight maintained' },
+    { action: 'On G1000 PFD, set NAV frequency to 108.10 MHz', detail: 'This is the ILS test frequency. Use the NAV frequency knob on the PFD to tune to 108.10.', verify: '108.10 MHz displayed on PFD' },
+    { action: 'On AVX-10K, verify ILS/NAV test setup parameters', detail: 'Confirm all signal parameters match the desired test conditions.', verify: 'Settings confirmed correct' },
+    { action: 'Press RUN to generate ILS signal', detail: 'The AVX-10K begins transmitting an ILS localizer signal at 108.10 MHz.', verify: 'System operating, ILS signal active' },
+    { action: 'Verify localizer deflection on G1000 PFD', detail: 'The CDI needle on the PFD should show deflection, indicating the localizer signal is being received. Watch for needle movement as the signal is modulated.', verify: 'CDI needle responding to ILS signal' },
+    { action: 'Monitor both PFD and AVX-10K iPad simultaneously', detail: 'Compare the cockpit display with the iPad remote display to confirm consistent readings.', verify: 'Both displays show correlated results' }
+  ])
+  + quote('With these settings, you can confirm that on your localizer in the PFD, you\'ll see the needle lining up on localizer. All this movement, you can watch the screen at the same time simultaneously watching the iPad to confirm everything is operating the right way.', 'Kenny Parsons, VIAVI Solutions')
+  + divider()
+  + text('<h2>COM Radio Test</h2><p>The COM test verifies the aircraft radio can both receive and transmit on VHF frequencies. The test is performed in three parts: <strong>receive</strong>, <strong>generate (AM)</strong>, and <strong>SELCAL</strong>.</p>')
+  + process('COM Test Procedure', [
+    { action: 'Set COM frequency to 118.00 MHz on G1000', detail: 'This is the standard COM test frequency.', verify: '118.00 displayed on PFD' },
+    { action: 'Interface AVX-10K with iPad, position equipment outside aircraft', detail: 'The technician operates the test set from outside while another person is in the cockpit.', verify: 'iPad connected, equipment in position' },
+    { action: 'Verify COM test setup — antenna, dB loss, cable loss', detail: 'Confirm all signal path parameters are correct before testing.', verify: 'All settings confirmed' },
+    { action: 'COM RECEIVE test — press PTT in aircraft', detail: 'When the pilot presses the PTT (Push-To-Talk) switch, the AVX-10K measures the transmitted signal including frequency and modulation percentage.', verify: 'Frequency and modulation percentage displayed' },
+    { action: 'COM GENERATE test (AM) — AVX-10K transmits at 118 MHz', detail: 'Set reference level to 34.7, press RUN. The AVX-10K generates an AM signal that should be audible through the aircraft audio system.', verify: 'Audio heard through aircraft speakers/headphones' },
+    { action: 'COM SELCAL test — transmit tone code AC-BD', detail: 'Select SELCAL mode on the AVX-10K. Start continuous tone transmission. SELCAL tones should be audible through the GMA audio panel speaker.', verify: 'SELCAL tones heard through audio panel' }
+  ])
+  + callout('info', 'Audio Panel Configuration', 'During COM testing, make sure the GMA audio panel has the speaker or headphones enabled on the appropriate COM channel. If you can\'t hear the test tones, check the audio panel routing first — it\'s the most common "forgotten step" in COM testing.')
+  + kc('kc_l5_1', 'What is the correct order for COM radio testing?',
+    ['SELCAL first, then AM, then receive', 'Receive first, then AM generate, then SELCAL', 'Any order is acceptable', 'Generate first, then receive, then SELCAL'],
+    1,
+    'Correct! Always test basic COM functionality (receive, generate AM) before specialized features like SELCAL. Systematic approach isolates faults — if SELCAL fails but AM works, you know the basic radio is fine.',
+    'Incorrect. The systematic approach is: Receive → Generate AM → SELCAL. This builds from basic to complex, making it easier to isolate faults if something fails.')
+  + takeaways([
+    'NAV/ILS testing generates a localizer signal — verify CDI needle deflection on the PFD',
+    'ILS test frequency in this demonstration is 108.10 MHz',
+    'COM testing has three parts: Receive (PTT test), Generate (AM signal), and SELCAL tones',
+    'Always test basic COM (AM) before specialized features (SELCAL)',
+    'Ensure the GMA audio panel is configured to hear test tones through speaker or headphones',
+    'Use the iPad remote display to simultaneously monitor both the test set and cockpit displays'
+  ])
+  + continueBtn('Next: Component Identification');
+}
+
+// ── L6: COMPONENT IDENTIFICATION ──
+function renderL6() {
+  return hero('Assessment', 'Component Identification', 'Test your ability to identify the key equipment, ports, and displays used in avionics CNS testing.', [
+    { color: 'var(--purple)', text: 'Assessment 1 of 2' },
+    { color: 'var(--accent)', text: '5 questions' }
+  ])
+  + objectives([
+    'Correctly identify test equipment by function',
+    'Distinguish between the two AVX-10K RF ports and their uses',
+    'Match connection methods to test types',
+    'Identify G1000 display functions'
+  ])
+  + text('<h2>Equipment Knowledge Assessment</h2><p>The following questions test your understanding of the equipment, connections, and setup procedures covered in Lessons 1–5. Take your time — accuracy matters more than speed in avionics work.</p>')
+  + kc('kc_l6_1', 'What device provides the GPS position data required for ADS-B ground testing?',
+    ['AVX-10K main unit', 'GPSG-1000 GPS Simulator', 'Garmin G1000 MFD', 'Extensible (DSRC) antenna'],
+    1,
+    'Correct! The GPSG-1000 GPS Simulator provides simulated GPS position for ADS-B testing on the ground.',
+    'Incorrect. The GPSG-1000 GPS Simulator injects a simulated GPS signal through an antenna coupler, giving the aircraft a valid GPS fix for ADS-B testing.')
+  + kc('kc_l6_2', 'Which antenna accessory is used for TCAS testing, and how should it be positioned?',
+    ['Extensible antenna, perpendicular to aircraft', 'Transponder coupler, on bottom antenna', 'Flat panel antenna, at 45-degree angle to TCAS antenna', 'GPS antenna coupler, on top of fuselage'],
+    2,
+    'Correct! The flat panel antenna connects to the ANT port and is aimed at the TCAS antenna at a 45-degree angle.',
+    'Incorrect. TCAS testing uses the flat panel antenna, positioned at a 45-degree angle aimed at the aircraft TCAS antenna.')
+  + kc('kc_l6_3', 'Which G1000 display shows the TCAS traffic targets during testing?',
+    ['PFD — Primary Flight Display (left screen)', 'MFD — Multi-Function Display (right screen)', 'GMA Audio Panel', 'Standby altimeter'],
+    1,
+    'Correct! The MFD (right screen) shows the TCAS traffic page with simulated targets.',
+    'Incorrect. The MFD (Multi-Function Display, right screen) handles TCAS traffic display, GPS status, and system pages. The PFD (left) shows flight instruments and transponder controls.')
+  + kc('kc_l6_4', 'What does the red RF I/O port on the AVX-10K I/O board indicate?',
+    ['It\'s for antenna-radiated testing (TCAS, NAV, COM)', 'It\'s a power supply connection', 'It\'s for direct-connect transponder testing via coupler', 'It\'s for USB data transfer'],
+    2,
+    'Correct! The RED RF I/O port is specifically for direct-connect transponder testing using the coupler.',
+    'Incorrect. RED = RF I/O = direct-connect transponder testing. GREEN = ANT = radiated testing for TCAS, NAV, COM.')
+  + kc('kc_l6_5', 'What cloud platform does the AVX-10K use for test data management?',
+    ['StrataSync', 'Garmin Pilot', 'ForeFlight', 'EDMO Cloud'],
+    0,
+    'Correct! StrataSync is VIAVI\'s cloud platform for test data storage, fleet management, and PDF reporting.',
+    'Incorrect. StrataSync is VIAVI Solutions\' cloud platform for managing test data, instrument configurations, and report storage.')
+  + continueBtn('Next: Troubleshooting Scenarios');
+}
+
+// ── L7: TROUBLESHOOTING SCENARIOS ──
+function renderL7() {
+  return hero('Assessment', 'Troubleshooting Scenarios', 'Apply your knowledge to real-world troubleshooting situations that avionics technicians encounter.', [
+    { color: 'var(--purple)', text: 'Assessment 2 of 2' },
+    { color: 'var(--accent)', text: '4 scenarios' }
+  ])
+  + objectives([
+    'Diagnose common equipment setup errors',
+    'Apply systematic troubleshooting logic',
+    'Identify root causes from symptom descriptions',
+    'Make correct decisions under realistic scenarios'
+  ])
+  + text('<h2>Scenario-Based Assessment</h2><p>Each scenario presents a situation you might encounter on the ramp. Read carefully, think through the problem, and select the best course of action.</p>')
+  + callout('info', 'Think Like a Technician', 'In avionics troubleshooting, always start with the simplest explanation. Check connections, settings, and configurations before suspecting component failures.')
+  + kc('kc_l7_1', 'Scenario: You\'re running a transponder test but the AVX-10K shows "No Reply" — the transponder isn\'t responding at all. The G1000 PFD shows the transponder is in STBY mode. What\'s the most likely cause?',
+    ['The transponder is broken and needs replacement', 'The transponder is in STBY (Standby) mode — it needs to be in ALT mode to respond to interrogations', 'The RF cable is damaged', 'The AVX-10K battery is low'],
+    1,
+    'Correct! In Standby mode, the transponder does not respond to interrogations. Switch to ALT mode on the G1000 PFD using the XPDR soft key, and the test should work.',
+    'Incorrect. The key clue is "STBY mode" on the PFD. Standby means the transponder is powered but NOT responding to interrogations. The fix is simple: switch to ALT mode using the XPDR soft key.')
+  + kc('kc_l7_2', 'Scenario: During ADS-B testing, the test shows "No ADS-B Position Data" even though the transponder test passed. What should you check first?',
+    ['Replace the transponder unit', 'Check if the GPSG-1000 GPS simulator is providing a valid GPS fix — verify 3D NAV on MFD GPS status page', 'Reconnect the transponder coupler', 'Switch from Surface mode to Airborne mode'],
+    1,
+    'Correct! No ADS-B position data almost always means no GPS fix. Check the GPSG-1000 simulator and verify 3D NAV on the MFD AUX page.',
+    'Incorrect. ADS-B requires GPS position data. If transponder test passed but ADS-B shows no position, the GPS simulator is likely the issue. Check GPSG-1000 and verify 3D NAV on the MFD.')
+  + kc('kc_l7_3', 'Scenario: You connected the flat panel antenna for TCAS testing, but no targets appear on the MFD traffic display. You notice the antenna cable is plugged into the RED port on the I/O board. What went wrong?',
+    ['The MFD needs to be on a different page', 'The antenna is plugged into the wrong port — TCAS testing requires the GREEN ANT port, not the RED RF I/O port', 'The TCAS system is broken', 'The antenna needs to be closer to the aircraft'],
+    1,
+    'Correct! The RED RF I/O port is for direct-connect transponder testing only. TCAS requires the GREEN ANT port for over-the-air signal transmission. Switch the cable to the correct port.',
+    'Incorrect. The flat panel antenna must be connected to the GREEN ANT port. The RED RF I/O port is only for direct-connect transponder testing via coupler. This port mismatch is a common setup error.')
+  + kc('kc_l7_4', 'Scenario: During COM testing, you can see the AVX-10K transmitting an AM signal at 118 MHz, but you hear nothing in the cockpit. What\'s the most likely overlooked step?',
+    ['The COM radio is broken', 'The GMA audio panel speaker/headphones may not be configured to hear COM audio on the correct channel', 'The antenna is too far from the aircraft', 'The frequency is wrong'],
+    1,
+    'Correct! The GMA audio panel controls audio routing. If the speaker isn\'t selected for the appropriate COM channel, you won\'t hear anything — even though the signal is being received. Check audio panel routing first.',
+    'Incorrect. Before suspecting equipment failure, check the GMA audio panel. If speaker or headphones aren\'t enabled on the correct COM channel, you won\'t hear the test tones — this is the most commonly forgotten step in COM testing.')
+  + takeaways([
+    'Always check the simplest explanations first: mode settings, port connections, audio routing',
+    'STBY mode = transponder won\'t respond; switch to ALT mode',
+    'No ADS-B position = check GPS simulator first',
+    'No TCAS targets = verify GREEN ANT port connection (not RED RF I/O)',
+    'No COM audio = check GMA audio panel routing before suspecting equipment failure'
+  ])
+  + continueBtn('View Your Results');
+}
+
+// ── L8: RESULTS ──
+function renderL8() {
+  markComplete('L8');
+  const kcIds = Object.keys(state.scores);
+  const totalQ = kcIds.length;
+  const correct = kcIds.reduce((sum, id) => sum + (state.scores[id] || 0), 0);
+  const pct = totalQ > 0 ? Math.round(correct / totalQ * 100) : 0;
+
+  // Calculate category scores
+  const categories = {
+    'Equipment & Setup': ['kc_l1_1', 'kc_l1_2', 'kc_l6_1', 'kc_l6_2', 'kc_l6_4', 'kc_l6_5'],
+    'Test Procedures': ['kc_l2_1', 'kc_l3_1', 'kc_l5_1'],
+    'Safety & Ports': ['kc_l4_1', 'kc_l4_2'],
+    'Troubleshooting': ['kc_l7_1', 'kc_l7_2', 'kc_l7_3', 'kc_l7_4']
+  };
+
+  function catScore(ids) {
+    const answered = ids.filter(id => state.scores[id] !== undefined);
+    if (answered.length === 0) return null;
+    return Math.round(answered.reduce((s, id) => s + (state.scores[id] || 0), 0) / answered.length * 100);
+  }
+
+  const catColors = {
+    'Equipment & Setup': 'var(--accent)',
+    'Test Procedures': 'var(--warning)',
+    'Safety & Ports': 'var(--error)',
+    'Troubleshooting': 'var(--purple)'
+  };
+
+  return hero('Summary', 'Your Results', 'Review your performance across all assessments and knowledge checks.', [
+    { color: pct >= 80 ? 'var(--success)' : 'var(--warning)', text: `${correct}/${totalQ} correct` },
+    { color: 'var(--accent)', text: `${state.completed.length}/${TOTAL_LESSONS} lessons` }
+  ])
+  + `<div class="score-card">
+    <div class="score-value" style="color:${pct >= 80 ? 'var(--success)' : pct >= 60 ? 'var(--warning)' : 'var(--error)'}">${pct}%</div>
+    <div class="score-label">Overall Score — ${correct} of ${totalQ} questions correct</div>
+  </div>`
+  + text('<h2>Competency Breakdown</h2>')
+  + Object.entries(categories).map(([name, ids]) => {
+    const score = catScore(ids);
+    const color = catColors[name] || 'var(--accent)';
+    return `<div class="competency-bar">
+      <div class="comp-label"><span class="comp-name">${name}</span><span class="comp-val">${score !== null ? score + '%' : 'Not attempted'}</span></div>
+      <div class="comp-track"><div class="comp-fill" style="width:${score || 0}%;background:${color}"></div></div>
+    </div>`;
+  }).join('')
+  + divider()
+  + text(pct >= 80
+    ? '<h2>🎉 Excellent Work!</h2><p>You\'ve demonstrated strong proficiency in avionics CNS testing with the AVX-10K. You understand the equipment connections, test procedures, safety protocols, and troubleshooting approaches needed to perform ramp testing effectively.</p>'
+    : pct >= 60
+    ? '<h2>📘 Good Progress</h2><p>You have a solid foundation, but some areas need review. Consider revisiting the lessons where you missed questions. Pay special attention to safety-critical topics like port selection and connection verification.</p>'
+    : '<h2>📖 Review Recommended</h2><p>Several core concepts need reinforcement. We recommend reviewing all lessons, starting with Equipment & Connection (L1) and working through the procedures sequentially. Focus especially on the safety gates and port identification.</p>')
+  + takeaways([
+    'This course covered 5 test procedures: Transponder, ADS-B, TCAS, NAV/ILS, and COM',
+    'RED RF I/O port = direct-connect transponder; GREEN ANT port = radiated TCAS/NAV/COM',
+    'ADS-B requires GPS simulation (GPSG-1000) for ground testing',
+    'Always verify all configuration parameters before running any test',
+    'Systematic troubleshooting: check mode settings → connections → configurations → equipment'
+  ])
+  + `<div class="block-continue" style="margin-top:32px">
+    <button class="btn-continue" onclick="state={version:2,current:'L0',completed:[],kcAnswers:{},scores:{}};saveState();goLesson('L0');" style="background:var(--bg-surface);box-shadow:none">↺ Restart Course</button>
+  </div>`;
+}
+
+// ── INIT ──
+renderSidebar();
+updateProgress();
+renderLesson(state.current);
+</script>
+</body>
+</html>
