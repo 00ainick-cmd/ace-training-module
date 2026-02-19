@@ -553,17 +553,21 @@ function renderL0() {
     'Recognize the importance of manufacturer procedures and FAR Part 43 compliance',
     'Navigate the Garmin G1000 cockpit interface for avionics testing'
   ])
-  + text('<h2>What You\'re About to Learn</h2><p>This training is based on a real-world avionics testing demonstration performed at <strong>Banyan Air Service</strong> in Fort Lauderdale, Florida. The demonstration was led by <strong>Kenny Parsons</strong> from VIAVI Solutions, with <strong>David Hauschild</strong> from EDMO Distributors hosting, and <strong>Christian Rivera</strong> — the Avionics Crew Lead at Banyan — assisting from the cockpit.</p><p>Together, they walked through a complete ramp test of a <strong>Beechcraft Bonanza C8200</strong> equipped with a <strong>Garmin G1000</strong> integrated flight deck. The test set used was the <strong>VIAVI AVX-10K</strong> — a next-generation CNS ramp test platform that replaces both the legacy IFR 6000 and IFR 4000.</p>')
+  + textImage('<h3>What You\'re About to Learn</h3><p>This training is based on a real-world avionics testing demonstration performed at <strong>Banyan Air Service</strong> in Fort Lauderdale, Florida.</p><p>The demonstration was led by <strong>Kenny Parsons</strong> from VIAVI Solutions, with <strong>David Hauschild</strong> from EDMO Distributors hosting, and <strong>Christian Rivera</strong> — the Avionics Crew Lead at Banyan — assisting from the cockpit.</p>', 'output/keyframes/interval_0001.jpg', 'David Hauschild and Kenny Parsons at Banyan Air Service with AVX-10K equipment', false)
+  + textImage('<h3>The Test Platform</h3><p>Together, they walked through a complete ramp test of a <strong>Beechcraft Bonanza C8200</strong> equipped with a <strong>Garmin G1000</strong> integrated flight deck.</p><p>The test set used was the <strong>VIAVI AVX-10K</strong> — a next-generation CNS ramp test platform that replaces both the legacy IFR 6000 and IFR 4000.</p>', 'output/keyframes/interval_0003.jpg', 'Kenny Parsons explaining test procedures with AVX-10K and Beechcraft Bonanza', true)
+  + textImage('<h3>Meet the Team</h3><p><strong>Christian Rivera</strong>, Avionics Crew Lead at Banyan Air Service, provides expert cockpit guidance throughout the demonstration.</p>', 'output/keyframes/interval_0004.jpg', 'Christian Rivera, Avionics Crew Lead at Banyan Air Service', false)
   + quote('For all work performed on this aircraft, we follow the aircraft manufacturer\'s approved procedures. Always reference the applicable maintenance manual and service documentation before conducting any test or inspection.', 'Christian Rivera, Avionics Crew Lead — Banyan Air Service')
   + callout('safety', 'Regulatory Compliance', 'Every avionics test described in this course must be performed in accordance with FAR Part 43 and the aircraft manufacturer\'s maintenance manual. Non-compliance can result in invalid test results, equipment damage, and regulatory violations.')
-  + text('<h2>The Aircraft & Equipment</h2><p>The test platform is a <strong>Beechcraft Bonanza C8200</strong> single-engine piston aircraft. Its avionics suite includes:</p>')
+  + textImage('<h3>The Aircraft</h3><p>The test platform is a <strong>Beechcraft Bonanza C8200</strong> single-engine piston aircraft. Its avionics suite includes the Garmin G1000 integrated flight deck — a two-screen glass cockpit.</p>', 'output/keyframes/scene_0002.jpg', 'Garmin G1000 cockpit showing PFD and MFD', true)
+  + text('<h2>Aircraft Systems</h2><p>The G1000 suite includes:</p>')
   + accordion('Aircraft Systems', [
     { title: 'Garmin G1000 Integrated Flight Deck', body: 'Two-screen glass cockpit with PFD (Primary Flight Display) on the left and MFD (Multi-Function Display) on the right. The PFD shows attitude, airspeed, altitude, heading, and hosts the transponder (XPDR) soft key controls. The MFD handles GPS status, TCAS traffic display, and system pages.', open: true },
     { title: 'GTX 345 Transponder', body: 'Garmin Mode S transponder with ADS-B Out capability integrated in the G1000 suite. Supports Mode A, Mode C, Mode S, and ADS-B. Accessed via the XPDR soft key on the PFD.' },
     { title: 'GMA Audio Panel', body: 'Garmin audio selector panel that controls COM audio routing. Must be configured to route audio to speaker or headphones during COM and SELCAL testing.' },
     { title: 'GTS TAS (Traffic Advisory System)', body: 'Garmin traffic system that provides traffic advisories based on transponder interrogation. Displayed on the MFD TCAS page. Can show simulated targets during AVX-10K TCAS testing.' }
   ])
-  + text('<h2>The Test Equipment</h2><p>The <strong>VIAVI AVX-10K</strong> is a tablet-based CNS ramp test set — essentially an all-in-one replacement for legacy transponder, DME, and NAFCOM test equipment. It features:</p>')
+  + textImage('<h3>The Test Equipment</h3><p>The <strong>VIAVI AVX-10K</strong> is a tablet-based CNS ramp test set — essentially an all-in-one replacement for legacy transponder, DME, and NAFCOM test equipment.</p>', 'output/keyframes/interval_0009.jpg', 'VIAVI GPSG-1000 GPS simulator and DSRC handheld unit', false)
+  + text('<h2>AVX-10K System Components</h2><p>The complete test system includes several accessories:</p>')
   + accordion('AVX-10K System Components', [
     { title: 'AVX-10K Main Unit', body: 'The core test set with an I/O board featuring color-coded RF ports. The <strong style="color:var(--error)">Red port (RF I/O)</strong> is for direct-connect transponder testing via coupler. The <strong style="color:var(--success)">Green port (ANT)</strong> is for antenna-radiated TCAS, NAV, and COM testing. This distinction is critical.', open: true },
     { title: 'Transponder Coupler', body: 'RF coupler that attaches directly to the aircraft\'s bottom-mounted transponder antenna. Creates a closed RF path for ground testing without over-the-air radiation — which would cause interference and potential FCC violations.' },
@@ -600,11 +604,16 @@ function renderL1() {
   + callout('info', 'Why Direct-Connect for Transponders?', 'During ground testing, an uncoupled transponder transmission at 1090 MHz could be received by ATC radar and other aircraft, creating false targets and potential safety hazards. The coupler creates a closed RF path that prevents this interference.')
   + divider()
   + text('<h2>Step-by-Step: Physical Connection</h2>')
+  + labeledGraphic('AVX-10K I/O Board — Color-Coded Ports', 'output/keyframes/scene_0000.jpg', [
+    { x: 40, y: 40, color: 'red', label: 'RF I/O Port (Red)', desc: 'Direct-connect port for transponder testing via coupler. Used for Transponder and ADS-B tests.' },
+    { x: 65, y: 55, color: 'amber', label: 'ANT Port (Green)', desc: 'Antenna radiation port for TCAS, NAV/ILS, and COM over-the-air testing.' }
+  ])
   + process('Equipment Connection Procedure', [
     { action: 'Connect RF cable from AVX-10K I/O board to transponder coupler', detail: 'Use the RED port labeled RF I/O on the I/O board. This is the direct-connect port for transponder testing.', verify: 'Cable firmly seated in RF I/O port' },
     { action: 'Connect transponder coupler to aircraft bottom antenna', detail: 'Locate the transponder antenna on the bottom of the aircraft fuselage. Insert the coupler onto the antenna and engage the action lever to lock it securely.', verify: 'Coupler securely attached, lever actuated' },
     { action: 'Position AVX-10K outside the aircraft', detail: 'The test set should be placed on a stable surface near the aircraft with clear access to the I/O board connections.', verify: 'Equipment stable, cables not strained' }
   ])
+  + textImage('<h3>Coupler Connection</h3><p>The transponder coupler is attached to the bottom-mounted transponder antenna on the underside of the aircraft. The action lever must be engaged for a secure fit.</p>', 'output/keyframes/scene_0001.jpg', 'Technician connecting transponder coupler to aircraft bottom antenna', false)
   + kc('kc_l1_1', 'Which port on the AVX-10K do you connect the transponder coupler cable to?',
     ['The green ANT port — for antenna radiation', 'The red RF I/O port — for direct-connect with coupler', 'Either port works for transponder testing', 'The USB data port on the side'],
     1,
@@ -613,15 +622,18 @@ function renderL1() {
     true)
   + divider()
   + text('<h2>G1000 Cockpit Configuration</h2><p>With the physical connections established, the next step is configuring the aircraft\'s transponder from the cockpit.</p>')
+  + textImage('<h3>Cockpit Familiarization</h3><p>Chris Rivera walks through the G1000 cockpit layout, identifying the PFD and MFD displays and the soft key controls used throughout testing.</p>', 'output/keyframes/scene_0003.jpg', 'Chris Rivera explaining G1000 cockpit layout', true)
   + labeledGraphic('G1000 Cockpit Layout', 'output/keyframes/scene_0002.jpg', [
     { x: 30, y: 50, color: 'purple', label: 'PFD (Primary Flight Display)', desc: 'Left screen — attitude, airspeed, altitude, heading. XPDR soft key at bottom for transponder controls.' },
     { x: 65, y: 50, color: 'purple', label: 'MFD (Multi-Function Display)', desc: 'Right screen — map, GPS status, TCAS traffic, engine instruments, system pages.' }
   ])
+  + textImage('<h3>PFD Soft Key Area</h3><p>The soft keys along the bottom of the PFD provide access to transponder controls. Select <strong>XPDR</strong> to bring up the transponder code and mode settings.</p>', 'output/keyframes/scene_0004.jpg', 'G1000 PFD close-up showing soft key row with XPDR selection', false)
   + process('G1000 Transponder Configuration', [
     { action: 'On PFD, select XPDR soft key at the bottom of the screen', detail: 'This brings up the transponder controls along the soft key bar.', verify: 'XPDR controls visible on PFD' },
     { action: 'Check altitude configuration — verify ALT mode is active', detail: 'ALT mode means the transponder reports pressure altitude. This is required for FAR Part 43 testing.', verify: 'ALT mode indicated' },
     { action: 'Press CODE soft key to set squawk code to 1200', detail: 'Code 1200 is the standard VFR conspicuity code used for ground testing.', verify: 'Green indication showing 1200 and ALT at bottom of PFD' }
   ])
+  + textImage('<h3>Transponder Status Confirmed</h3><p>After configuration, verify the green indication at the bottom of the PFD showing code 1200 and ALT mode active. This confirms the transponder is ready for testing.</p>', 'output/keyframes/interval_0012.jpg', 'G1000 PFD showing transponder status with XPDR controls', true)
   + kc('kc_l1_2', 'What must you verify about the coupler connection before starting any transponder test?',
     ['That the coupler is the right color', 'That the coupler is inserted onto the antenna and the action lever is engaged for a secure fit', 'That the coupler cable is at least 50 feet long', 'That the coupler is connected to the ANT port'],
     1,
@@ -652,6 +664,7 @@ function renderL2() {
     'Save results and upload to StrataSync'
   ])
   + text('<h2>Test Configuration</h2><p>Before running any automated test, you must verify the AVX-10K configuration matches your actual equipment setup. Incorrect parameters produce invalid results — which could pass a failing transponder or fail a good one. Both outcomes have serious flight safety implications.</p>')
+  + textImage('<h3>AVX-10K XPDR-Auto Setup Screen</h3><p>The setup screen shows all test parameters: RF Port selection (Direct Connect with Coupler), Antenna Settings, Cable Settings, Coupler Settings, and UUT Address configuration.</p>', 'output/keyframes/interval_0014.jpg', 'AVX-10K showing XPDR-Auto setup page with all configuration parameters', false)
   + quote('The equipment will ask you if all the parameters are proper or correct. Once you read them and confirm, you can press Continue Test.', 'Kenny Parsons, VIAVI Solutions')
   + process('Running the Transponder Test', [
     { action: 'Navigate to XPDR-Auto test on the AVX-10K', detail: 'Select the transponder tab, then XPDR-Auto. The setup screen shows RF Port, Cable Settings, Coupler Settings, and UUT Address.', verify: 'XPDR-Auto (RF I/O - CPLR) displayed' },
@@ -662,8 +675,11 @@ function renderL2() {
     { action: 'Review results when test completes', detail: 'All parameters should show PASS with green indicators.', verify: 'All parameters PASS' },
     { action: 'Save results and create PDF report', detail: 'Results can be saved locally, converted to PDF, or uploaded to StrataSync cloud for record-keeping.', verify: 'Report saved/uploaded successfully' }
   ])
+  + textImage('<h3>Verify Configuration Dialog</h3><p>Before the test runs, the AVX-10K displays this critical verification step showing: Cable Length 25ft, Cable Loss 2.41dB, Coupler Loss 0.6dB, UUT Address Auto. Review every parameter before pressing Continue Test.</p>', 'output/keyframes/interval_0016.jpg', 'AVX-10K Verify Configuration dialog showing cable length, loss, and coupler settings', true)
   + callout('warn', 'Verify Configuration Dialog', 'The Verify Configuration dialog is your last chance to catch parameter errors before the test runs. Always review: Port configuration, Cable length and loss, Coupler loss, UUT Address mode. Never blindly press Continue Test.')
+  + textImage('<h3>Test In Progress</h3><p>During the test, the TX/RX indicator shows active interrogation. Watch the percent progress indicator and green checkmarks as each parameter passes.</p>', 'output/keyframes/scene_0005.jpg', 'AVX-10K showing FAR Part 43 Mode S test at 5% with TX/RX indicator active', false)
   + divider()
+  + textImage('<h3>Test Results — All Parameters PASS</h3><p>The completed FAR Part 43 Mode S transponder test shows all parameters with green checkmarks and PASS status. Key values include Level 2, Code 1200, BOT ERP 52.1 dBm, and DF17 Detected.</p>', 'output/keyframes/scene_0006.jpg', 'AVX-10K showing completed transponder test with all parameters PASS', true)
   + text('<h2>Understanding the Test Results</h2><p>The FAR Part 43 Mode S transponder test checks multiple parameters. Here\'s what each one means:</p>')
   + accordion('Test Parameters Explained', [
     { title: 'Level — Value: 2', body: 'Mode S transponder level. Level 2 indicates the transponder supports basic Mode S with SI (Surveillance Identifier) capability. Levels range from 1–5, with higher levels supporting more features.', open: true },
@@ -681,6 +697,7 @@ function renderL2() {
     'Correct! DF17 (Downlink Format 17) is the Mode S extended squitter format used for ADS-B Out. Detecting it confirms ADS-B functionality.',
     'Incorrect. DF17 stands for Downlink Format 17 — the Mode S extended squitter message format used for ADS-B Out transmissions. Its detection confirms ADS-B is working.')
   + divider()
+  + textImage('<h3>PDF Report Generation</h3><p>After the test completes, results can be saved and converted to a PDF report for compliance documentation. The report shows all Mode S parameters, pass/fail status, and test configuration details.</p>', 'output/keyframes/scene_0007.jpg', 'AVX-10K showing completed test report with Convert HTML to PDF button', false)
   + text('<h2>StrataSync Cloud Upload</h2><p>After completing any test, the AVX-10K can upload results to <strong>StrataSync</strong> — VIAVI\'s cloud platform. This provides:</p>')
   + accordion('StrataSync Benefits', [
     { title: 'Cloud Record-Keeping', body: 'All test results are stored securely in the cloud, creating a verifiable audit trail for FAR Part 43 compliance documentation.', open: true },
@@ -712,8 +729,10 @@ function renderL3() {
     'Identify the ADS-B transmission indicator on the PFD'
   ])
   + text('<h2>Why GPS Simulation is Required</h2><p>ADS-B (Automatic Dependent Surveillance-Broadcast) works by broadcasting the aircraft\'s GPS-derived position. The key word is <strong>"dependent"</strong> — the system depends on GPS for its position data. Without a valid GPS fix, the transponder has no position to broadcast, and ADS-B simply won\'t work.</p><p>When an aircraft is parked on the ramp, the onboard GPS receiver may or may not have satellite lock — and even if it does, the position data may not meet the accuracy requirements for ADS-B testing. This is where the <strong>VIAVI GPSG-1000 GPS Simulator</strong> comes in.</p>')
+  + textImage('<h3>GPSG-1000 GPS Simulator</h3><p>The GPSG-1000 displays satellite tracking data with PRN numbers and simulates a static position at Fort Lauderdale coordinates (26.19°N, 80.17°W). The DSRC handheld unit is visible alongside.</p>', 'output/keyframes/interval_0020.jpg', 'GPSG-1000 GPS simulator showing satellite tracking and Fort Lauderdale coordinates', true)
   + callout('info', 'The GPSG-1000 Solution', 'The GPSG-1000 simulates a GPS constellation and injects a static position signal (in this case, coordinates for Fort Lauderdale: 26.19°N, 80.17°W) through an antenna coupler to the aircraft\'s GPS antenna. This guarantees a clean, repeatable GPS fix for ADS-B testing.')
   + divider()
+  + textImage('<h3>MFD GPS Status Page</h3><p>On the G1000 MFD, the AUX/GPS status page shows satellite signal strength bars and confirms 3D navigation solution — this means the GPS simulator is working correctly.</p>', 'output/keyframes/interval_0022.jpg', 'G1000 MFD showing GPS status page with satellite signal bars and 3D NAV', false)
   + process('ADS-B Test Procedure', [
     { action: 'Set up GPSG-1000 GPS simulator', detail: 'Power on the GPSG-1000 and confirm it\'s simulating a static position. Use the GPSG-100 antenna coupler to inject the signal to the aircraft GPS antenna.', verify: 'GPS simulator showing active simulation with satellite tracking' },
     { action: 'On PFD, verify XPDR in ALT mode with correct squawk code', detail: 'Same configuration as transponder test — select XPDR soft key, confirm ALT mode and code.', verify: 'XPDR showing ALT mode' },
@@ -751,6 +770,10 @@ function renderL4() {
     'Understand the difference between TCAS and TAS'
   ])
   + text('<h2>Switching to Radiated Testing</h2><p>The TCAS test marks an important transition. Unlike the transponder test (which used direct-connect via coupler), TCAS testing uses <strong>over-the-air (radiated) transmission</strong>. This is because TCAS works by interrogating nearby transponders through antennas — so to properly test it, we need to simulate that over-the-air signal path.</p>')
+  + labeledGraphic('AVX-10K I/O Board — TCAS Antenna Connection', 'output/keyframes/scene_0010.jpg', [
+    { x: 45, y: 45, color: 'red', label: 'ANT Port (Green)', desc: 'Connect the flat panel antenna here for TCAS radiated testing. This is the CORRECT port for TCAS.' },
+    { x: 70, y: 35, color: 'amber', label: 'RF I/O Port (Red)', desc: 'Do NOT use this port for TCAS — it is only for direct-connect transponder testing.' }
+  ])
   + callout('safety', 'Critical Port Selection', 'For TCAS testing, connect the flat panel antenna to the <strong>GREEN ANT port</strong> on the AVX-10K I/O board. Do NOT use the RED RF I/O port — that port is only for direct-connect transponder testing. Using the wrong port could damage equipment or produce invalid results.')
   + divider()
   + process('TCAS Test Setup', [
@@ -761,6 +784,8 @@ function renderL4() {
     { action: 'Run test and observe MFD TCAS page', detail: 'Watch for simulated target(s) appearing on the MFD traffic display. The target should track from the configured starting range inward.', verify: 'Target visible on MFD at expected range' },
     { action: 'Use range knob on MFD to zoom in and verify target details', detail: 'The range knob on the right side of the MFD lets you zoom in. Verify the target position and altitude match the AVX-10K presets.', verify: 'Target matches preset values' }
   ])
+  + textImage('<h3>TCAS Setup Screen</h3><p>The AVX-10K TCAS setup shows RF Port set to ANTENNA (ANT), along with antenna settings, cable settings, and altitude configuration. The squitters and altitude reporting are enabled.</p>', 'output/keyframes/scene_0009.jpg', 'AVX-10K TCAS setup page showing antenna port selection and configuration', true)
+  + textImage('<h3>TCAS Collision Scenario</h3><p>The test scenario is configured with: >200ft collision, TAS type, ATCRBS intruder, range start 12nm, range rate 300kts. These parameters determine how the simulated target behaves on the MFD traffic display.</p>', 'output/keyframes/interval_0025.jpg', 'AVX-10K TCAS test scenario configuration with collision parameters', false)
   + kc('kc_l4_1', 'Which port do you connect the TCAS test antenna to?',
     ['The red RF I/O port — same as transponder', 'The ANT port (green) — for antenna radiation, NOT the RF I/O port', 'The USB port on the side of the AVX-10K', 'Any available port on the I/O board'],
     1,
@@ -802,6 +827,7 @@ function renderL5() {
     'Use the iPad remote display for simultaneous monitoring'
   ])
   + text('<h2>NAV/ILS Functional Test</h2><p>The NAV/ILS test verifies the aircraft\'s navigation receiver can correctly receive and display ILS (Instrument Landing System) signals. The AVX-10K generates an ILS localizer signal that the G1000 should detect and display as CDI (Course Deviation Indicator) needle deflection on the PFD.</p>')
+  + textImage('<h3>Extensible Antenna Setup</h3><p>The DSRC handheld unit with its extensible whip antenna is positioned outside the aircraft, within line-of-sight of the aircraft NAV antenna. The antenna must be fully extended for proper signal transmission.</p>', 'output/keyframes/scene_0013.jpg', 'DSRC handheld unit with extensible antenna positioned near Beechcraft Bonanza', false)
   + process('NAV/ILS Test Procedure', [
     { action: 'Connect extensible antenna to AVX-10K ANT port and extend', detail: 'Use the same GREEN ANT port as TCAS testing. Extend the whip antenna fully and position it within line-of-sight of the aircraft NAV antenna.', verify: 'Antenna extended, line-of-sight maintained' },
     { action: 'On G1000 PFD, set NAV frequency to 108.10 MHz', detail: 'This is the ILS test frequency. Use the NAV frequency knob on the PFD to tune to 108.10.', verify: '108.10 MHz displayed on PFD' },
@@ -810,9 +836,11 @@ function renderL5() {
     { action: 'Verify localizer deflection on G1000 PFD', detail: 'The CDI needle on the PFD should show deflection, indicating the localizer signal is being received. Watch for needle movement as the signal is modulated.', verify: 'CDI needle responding to ILS signal' },
     { action: 'Monitor both PFD and AVX-10K iPad simultaneously', detail: 'Compare the cockpit display with the iPad remote display to confirm consistent readings.', verify: 'Both displays show correlated results' }
   ])
+  + textImage('<h3>ILS Localizer on PFD</h3><p>The CDI needle on the G1000 PFD shows deflection, confirming the ILS localizer signal is being received. Watch for needle movement as the AVX-10K modulates the signal.</p>', 'output/keyframes/scene_0014.jpg', 'G1000 PFD showing ILS localizer CDI needle deflection during NAV test', true)
   + quote('With these settings, you can confirm that on your localizer in the PFD, you\'ll see the needle lining up on localizer. All this movement, you can watch the screen at the same time simultaneously watching the iPad to confirm everything is operating the right way.', 'Kenny Parsons, VIAVI Solutions')
   + divider()
   + text('<h2>COM Radio Test</h2><p>The COM test verifies the aircraft radio can both receive and transmit on VHF frequencies. The test is performed in three parts: <strong>receive</strong>, <strong>generate (AM)</strong>, and <strong>SELCAL</strong>.</p>')
+  + textImage('<h3>COM Receive Page</h3><p>The AVX-10K COM receive test at 118.000 MHz AM. When the pilot presses PTT, the test set measures the transmitted frequency and modulation percentage.</p>', 'output/keyframes/scene_0015.jpg', 'AVX-10K COM receive page showing AM at 118 MHz with UUT TX measurements', false)
   + process('COM Test Procedure', [
     { action: 'Set COM frequency to 118.00 MHz on G1000', detail: 'This is the standard COM test frequency.', verify: '118.00 displayed on PFD' },
     { action: 'Interface AVX-10K with iPad, position equipment outside aircraft', detail: 'The technician operates the test set from outside while another person is in the cockpit.', verify: 'iPad connected, equipment in position' },
@@ -821,6 +849,8 @@ function renderL5() {
     { action: 'COM GENERATE test (AM) — AVX-10K transmits at 118 MHz', detail: 'Set reference level to 34.7, press RUN. The AVX-10K generates an AM signal that should be audible through the aircraft audio system.', verify: 'Audio heard through aircraft speakers/headphones' },
     { action: 'COM SELCAL test — transmit tone code AC-BD', detail: 'Select SELCAL mode on the AVX-10K. Start continuous tone transmission. SELCAL tones should be audible through the GMA audio panel speaker.', verify: 'SELCAL tones heard through audio panel' }
   ])
+  + textImage('<h3>COM AM Generate Test</h3><p>The AVX-10K generates an AM signal at 118 MHz with RF level -35.70 dBm and modulation tone at 1020 Hz. This tone should be audible through the aircraft audio system.</p>', 'output/keyframes/interval_0028.jpg', 'AVX-10K COM generate page showing AM at 118 MHz with modulation settings', true)
+  + textImage('<h3>SELCAL Tone Test</h3><p>In SELCAL mode, the AVX-10K transmits tone code AC-BD at 118 MHz with 80% modulation. The red TRANSMITTING TONE indicator confirms active tone generation.</p>', 'output/keyframes/scene_0016.jpg', 'AVX-10K SELCAL test page showing tone code AC-BD transmitting at 118 MHz', false)
   + callout('info', 'Audio Panel Configuration', 'During COM testing, make sure the GMA audio panel has the speaker or headphones enabled on the appropriate COM channel. If you can\'t hear the test tones, check the audio panel routing first — it\'s the most common "forgotten step" in COM testing.')
   + kc('kc_l5_1', 'What is the correct order for COM radio testing?',
     ['SELCAL first, then AM, then receive', 'Receive first, then AM generate, then SELCAL', 'Any order is acceptable', 'Generate first, then receive, then SELCAL'],
